@@ -26,11 +26,19 @@ public class AuthInterceptor implements ClientHttpRequestInterceptor {
         ClientHttpResponse response = execution.execute(request, body);
 
         if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+            if (request.getHeaders().get("X-Refresh-Attempted") != null) {
+                return response;
+            }
             response.close();
             try {
-                String newAccessToken = authService.refresh(authContext.getRefreshToken()).accessToken();
+                String refreshToken = authContext.getRefreshToken();
+                if (refreshToken == null) {
+                    return response;
+                }
+                String newAccessToken = authService.refresh(refreshToken).accessToken();
                 authContext.setAccessToken(newAccessToken);
                 request.getHeaders().setBearerAuth(newAccessToken);
+                request.getHeaders().add("X-Refresh-Attempted", "true");
                 return execution.execute(request, body);
             } catch (Exception e) {
                 return response;

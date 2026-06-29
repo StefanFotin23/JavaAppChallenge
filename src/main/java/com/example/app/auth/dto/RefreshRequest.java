@@ -1,4 +1,8 @@
 package com.example.app.auth.dto;
 
-public class RefreshRequest {
-}
+import jakarta.validation.constraints.NotNull;
+
+public record RefreshRequest(
+        @NotNull(message = "Refresh token cannot be null")
+        String refreshToken
+) {}

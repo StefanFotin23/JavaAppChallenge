@@ -2,7 +2,6 @@ package com.example.app.auth.service;
 
 import com.example.app.auth.dto.AuthResponse;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+    private final static Integer accessTokenExpirationMinutes = 15;
+    private final static Integer refreshTokenExpirationMinutes = 1440;
+
     @Value("${jwt.secret}")
     private String secret;
 
@@ -25,8 +26,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(String username, String password) {
-        String accessToken = generateToken(username, 15);
-        String refreshToken = generateToken(username, 1440);
+        String accessToken = generateToken(username, accessTokenExpirationMinutes);
+        String refreshToken = generateToken(username, refreshTokenExpirationMinutes);
 
         refreshTokens.put(refreshToken, username);
         return new AuthResponse(accessToken, refreshToken, username);
@@ -36,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse refresh(String refreshToken) {
         if (refreshTokens.containsKey(refreshToken) && validateToken(refreshToken)) {
             String username = refreshTokens.get(refreshToken);
-            String newAccessToken = generateToken(username, 15);
+            String newAccessToken = generateToken(username, accessTokenExpirationMinutes);
             return new AuthResponse(newAccessToken, refreshToken, username);
         }
         throw new RuntimeException("Invalid refresh token");

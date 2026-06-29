@@ -9,12 +9,20 @@ import org.mapstruct.Named;
 @Mapper(componentModel = "spring")
 public interface CharacterMapper {
     @Mapping(target = "name", source = "name")
-    @Mapping(target = "height", source = "height")
+    @Mapping(target = "height", source = "height", qualifiedByName = "centimetersToMeters")
     @Mapping(target = "mass", source = "mass")
     @Mapping(target = "birthYear", source = "birthYear")
     @Mapping(target = "numberOfFilms", expression = "java(dto.films() != null ? dto.films().size() : 0)")
     @Mapping(target = "dateAdded", source = "created", qualifiedByName = "formatDate")
     CharacterResponseDTO toResponse(CharacterDTO dto);
+
+    @Named("centimetersToMeters")
+    default Double centimetersToMeters(Integer cm) {
+        if (cm == null || cm == -1) {
+            return -1D;
+        }
+        return cm / 100.0;
+    }
 
     @Named("formatDate")
     default String formatDate(String isoDate) {

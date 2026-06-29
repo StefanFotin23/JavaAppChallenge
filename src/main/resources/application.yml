@@ -1,0 +1,34 @@
+spring:
+  data:
+    redis:
+      host: redis
+      port: 6379
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+  restclient:
+    connect-timeout: 5000
+    read-timeout: 10000
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+    serialization:
+      indent_output: true
+
+swapi:
+  base-url: https://swapi.dev/api
+
+jwt:
+  secret: ${JWT_SECRET}
+
+logging:
+  level:
+    com:
+      example:
+        app:
+          starwars: DEBUG
+    org:
+      springframework:
+        web:
+          client: DEBUG

@@ -1,0 +1,23 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    environment:
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET}
+
+  redis:
+    image: redis:7.2.4-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    # Applying the memory constraints and eviction policy here
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]

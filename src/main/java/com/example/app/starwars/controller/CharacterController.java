@@ -4,12 +4,13 @@ import com.example.app.auth.security.SecurityUtils;
 import com.example.app.starwars.dto.CharacterDTO;
 import com.example.app.starwars.dto.CharacterResponseDTO;
 import com.example.app.starwars.service.CharacterService;
-import com.example.app.starwars.service.CharacterServiceImpl;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
@@ -19,12 +20,15 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Validated
 public class CharacterController {
     private final SecurityUtils securityUtils;
     private final CharacterService characterService;
 
     @GetMapping("/people")
-    public ResponseEntity<List<CharacterDTO>> getCharacters(@RequestParam(defaultValue = "1") int page) {
+    public ResponseEntity<List<CharacterDTO>> getCharacters(
+            @RequestParam(defaultValue = "1") 
+            @Min(value = 1, message = "Page number must be greater than or equal to 1") int page) {
         List<CharacterDTO> characters = characterService.getPeople(page);
 
         if (characters == null || characters.isEmpty()) {
@@ -36,7 +40,9 @@ public class CharacterController {
     }
 
     @GetMapping("/people/{id}")
-    public ResponseEntity<CharacterResponseDTO> getCharacterById(@PathVariable String id) {
+    public ResponseEntity<CharacterResponseDTO> getCharacterById(
+            @PathVariable 
+            @Pattern(regexp = "^[1-9]\\d*$", message = "ID must be a positive numeric value") String id) {
         CharacterResponseDTO character = characterService.getCharacterById(id);
         return ResponseEntity.ok(character);
     }

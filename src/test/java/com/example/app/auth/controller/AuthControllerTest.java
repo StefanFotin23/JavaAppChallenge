@@ -1,7 +1,9 @@
 package com.example.app.auth.controller;
 
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -16,9 +18,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Collections;
 import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,5 +73,19 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("newMockAccess"));
+    }
+
+    @Test
+    void testGetCurrentUser() throws Exception {
+        var auth = new UsernamePasswordAuthenticationToken("testuser", null, Collections.emptyList());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        try {
+            mockMvc.perform(get("/auth/user"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("You are authenticated as: testuser"));
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 }

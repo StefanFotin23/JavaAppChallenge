@@ -27,6 +27,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     String header = req.getHeader("Authorization");
     if (header != null && header.startsWith("Bearer ")) {
       String token = header.substring(7);
+      if (req.getRequestURI().endsWith("/logout")) {
+        chain.doFilter(req, res);
+        return;
+      }
       try {
         String username = authService.extractUsername(token);
         String refreshToken = req.getHeader("Refresh-Token");

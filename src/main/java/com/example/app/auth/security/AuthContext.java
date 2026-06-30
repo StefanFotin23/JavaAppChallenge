@@ -10,11 +10,11 @@ import org.springframework.web.context.annotation.RequestScope;
 @Component
 @RequestScope
 public class AuthContext {
-    private String accessToken;
-    private String refreshToken;
+  private String accessToken;
+  private String refreshToken;
 
-    void setTokens(String accessToken, String refreshToken) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-    }
+  void setTokens(String accessToken, String refreshToken) {
+    this.accessToken = accessToken;
+    this.refreshToken = refreshToken;
+  }
 }

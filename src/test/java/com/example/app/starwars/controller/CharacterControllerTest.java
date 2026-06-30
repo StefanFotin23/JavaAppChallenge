@@ -14,6 +14,8 @@ import com.example.app.starwars.dto.CharacterDTO;
 import com.example.app.starwars.dto.CharacterResponseDTO;
 import com.example.app.starwars.service.CharacterService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.security.Principal;
+import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,77 +26,81 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.security.Principal;
-import java.util.Collections;
-
 @ExtendWith(MockitoExtension.class)
 class CharacterControllerTest {
 
-    private MockMvc mockMvc;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+  private MockMvc mockMvc;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Mock
-    private CharacterService characterService;
+  @Mock private CharacterService characterService;
 
-    @Mock
-    private SecurityUtils securityUtils;
+  @Mock private SecurityUtils securityUtils;
 
-    @InjectMocks
-    private CharacterController characterController;
+  @InjectMocks private CharacterController characterController;
 
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(characterController)
-                .setControllerAdvice(new GlobalExceptionHandler())
-                .build();
-    }
+  @BeforeEach
+  void setUp() {
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(characterController)
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .build();
+  }
 
-    @Test
-    void testGetCharactersSuccess() throws Exception {
-        CharacterDTO character = new CharacterDTO("Luke Skywalker", 172, 77, "19BBY", Collections.emptyList(), "2014-12-09T13:50:51.644000Z");
-        when(characterService.getPeople(1)).thenReturn(Collections.singletonList(character));
+  @Test
+  void testGetCharactersSuccess() throws Exception {
+    CharacterDTO character =
+        new CharacterDTO(
+            "Luke Skywalker",
+            172,
+            77,
+            "19BBY",
+            Collections.emptyList(),
+            "2014-12-09T13:50:51.644000Z");
+    when(characterService.getPeople(1)).thenReturn(Collections.singletonList(character));
 
-        mockMvc.perform(get("/people?page=1")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Luke Skywalker"));
-    }
+    mockMvc
+        .perform(get("/people?page=1").contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].name").value("Luke Skywalker"));
+  }
 
-    @Test
-    void testGetCharactersEmptyReturns404() throws Exception {
-        when(characterService.getPeople(1)).thenReturn(Collections.emptyList());
+  @Test
+  void testGetCharactersEmptyReturns404() throws Exception {
+    when(characterService.getPeople(1)).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/people?page=1"))
-                .andExpect(status().isNotFound());
-    }
+    mockMvc.perform(get("/people?page=1")).andExpect(status().isNotFound());
+  }
 
-    @Test
-    void testGetFavourites() throws Exception {
-        CharacterResponseDTO character = new CharacterResponseDTO();
-        character.setName("Yoda");
-        when(characterService.getFavouriteCharacters("admin")).thenReturn(Collections.singletonList(character));
+  @Test
+  void testGetFavourites() throws Exception {
+    CharacterResponseDTO character = new CharacterResponseDTO();
+    character.setName("Yoda");
+    when(characterService.getFavouriteCharacters("admin"))
+        .thenReturn(Collections.singletonList(character));
 
-        Principal principal = () -> "admin";
+    Principal principal = () -> "admin";
 
-        mockMvc.perform(get("/favourites")
-                .principal(principal))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Yoda"));
-    }
+    mockMvc
+        .perform(get("/favourites").principal(principal))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].name").value("Yoda"));
+  }
 
-    @Test
-    void testAddFavouriteSuccess() throws Exception {
-        CharacterResponseDTO character = new CharacterResponseDTO();
-        character.setName("Obi-Wan");
-        when(characterService.addFavouriteCharacter(anyString(), any())).thenReturn(true);
+  @Test
+  void testAddFavouriteSuccess() throws Exception {
+    CharacterResponseDTO character = new CharacterResponseDTO();
+    character.setName("Obi-Wan");
+    when(characterService.addFavouriteCharacter(anyString(), any())).thenReturn(true);
 
-        Principal principal = () -> "admin";
+    Principal principal = () -> "admin";
 
-        mockMvc.perform(post("/favourites")
+    mockMvc
+        .perform(
+            post("/favourites")
                 .principal(principal)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(character)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").value(true));
-    }
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(true));
+  }
 }

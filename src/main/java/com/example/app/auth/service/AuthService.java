@@ -7,11 +7,11 @@ public interface AuthService {
 
   AuthResponse refresh(String refreshToken);
 
-  String getUsernameFromToken(String token);
-
   boolean validateToken(String token);
 
   void clearSession(String accessToken);
 
   String extractUsername(String token);
+
+  String extractUsernameEvenIfExpired(String token);
 }

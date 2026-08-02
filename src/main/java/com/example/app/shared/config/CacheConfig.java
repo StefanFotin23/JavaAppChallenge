@@ -19,14 +19,23 @@ public class CacheConfig {
   private long ttlMinutes;
 
   @Bean
-  public RedisCacheConfiguration cacheConfiguration() {
+  public RedisCacheConfiguration cacheConfiguration(com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
+    com.fasterxml.jackson.databind.ObjectMapper mapper = objectMapper.copy();
+    mapper.activateDefaultTyping(
+        mapper.getPolymorphicTypeValidator(),
+        com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping.NON_FINAL,
+        com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY);
+
+    org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer serializer = 
+        new org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer(mapper);
+
     return RedisCacheConfiguration.defaultCacheConfig()
         .entryTtl(Duration.ofMinutes(ttlMinutes))
         .disableCachingNullValues()
         .serializeKeysWith(
-            RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+            org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair.fromSerializer(new org.springframework.data.redis.serializer.StringRedisSerializer()))
         .serializeValuesWith(
-            RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json()));
+            org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair.fromSerializer(serializer));
   }
 
   @Bean
@@ -45,9 +54,9 @@ public class CacheConfig {
   }
 
   @Bean
-  public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+  public CacheManager cacheManager(RedisConnectionFactory connectionFactory, com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
     return org.springframework.data.redis.cache.RedisCacheManager.builder(connectionFactory)
-        .cacheDefaults(cacheConfiguration())
+        .cacheDefaults(cacheConfiguration(objectMapper))
         .build();
   }
 }

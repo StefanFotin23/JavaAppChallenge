@@ -8,9 +8,13 @@ services:
       - "8080:8080"
     depends_on:
       - redis
+      - db
     environment:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ekyc_db
+      - SPRING_DATASOURCE_USERNAME=ekyc_user
+      - SPRING_DATASOURCE_PASSWORD=ekyc_password
       - JWT_SECRET=${JWT_SECRET}
 
   redis:
@@ -21,3 +25,19 @@ services:
     restart: unless-stopped
     # Applying the memory constraints and eviction policy here
     command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=ekyc_db
+      - POSTGRES_USER=ekyc_user
+      - POSTGRES_PASSWORD=ekyc_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
